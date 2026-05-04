@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "1010615366421",
+    "firebase_url": "https://zuru-d1e73-default-rtdb.firebaseio.com",
+    "project_id": "zuru-d1e73",
+    "storage_bucket": "zuru-d1e73.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1010615366421:android:7dd57b44166bf60bfeef1c",
+        "android_client_info": {
+          "package_name": "com.udeh.zuru"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCkCSL91qZqDb83MckzCHo6Hi-CW2xLyFU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

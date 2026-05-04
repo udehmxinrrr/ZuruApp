@@ -1,283 +1,245 @@
-package com.udeh.zuru.ui.screens.destinations
+package com.udeh.zuru.ui.screens.tourwithzuru
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowForward
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.udeh.zuru.navigation.ROUT_HOME
+import com.udeh.zuru.navigation.*
 import com.udeh.zuru.ui.theme.zurublue
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.ui.unit.dp
-import com.udeh.zuru.navigation.ROUT_DESTINATIONS
-import com.udeh.zuru.navigation.ROUT_DISCOVER
-import com.udeh.zuru.navigation.ROUT_HOTELS
-import com.udeh.zuru.navigation.ROUT_MAPS
-import com.udeh.zuru.navigation.ROUT_PROFILE
-import com.udeh.zuru.navigation.ROUT_RESERVATIONS
-import com.udeh.zuru.navigation.ROUT_TOURERS
-import com.udeh.zuru.navigation.ROUT_TOURWITHZURU
+import kotlinx.coroutines.launch
+
+
+// ── Reason card data ──────────────────────────────────────────────────────────
+
+data class ZuruReason(
+    val icon: ImageVector,
+    val title: String,
+    val description: String
+)
+
+val zuruReasons = listOf(
+    ZuruReason(Icons.Default.Star, "Curated Experiences", "Every Zuru tour is hand-crafted by locals who know Kenya inside out — from hidden waterfalls to secret viewpoints no guidebook mentions."),
+    ZuruReason(Icons.Default.Person, "Expert Local Guides", "Our guides are passionate Kenyans with years of field experience. They speak the land, its animals, and its people fluently."),
+    ZuruReason(Icons.Default.LocationOn, "All-Inclusive Packages", "Accommodation, transport, meals, and park fees — all bundled into one transparent price. No surprise costs, ever."),
+    ZuruReason(Icons.Default.CheckCircle, "Small Group Sizes", "We cap every tour at 8 travellers. Fewer people means more wildlife sightings, better photos, and a more personal experience."),
+    ZuruReason(Icons.Default.Favorite, "Community First", "A portion of every Zuru booking goes directly to local Maasai communities and conservation projects that protect Kenya's wildlife."),
+    ZuruReason(Icons.Default.Star, "Flexible Itineraries", "Want to spend an extra day at the Mara? No problem. We adapt to you — not the other way around."),
+    ZuruReason(Icons.Default.CheckCircle, "24/7 Support", "From the moment you book to the day you fly home, our team is reachable around the clock for anything you need.")
+)
+
+
+// ── Single reason card ────────────────────────────────────────────────────────
+
+@Composable
+fun ZuruReasonCard(reason: ZuruReason) {
+    val isDark = isSystemInDarkTheme()
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp, vertical = 6.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(if (isDark) Color(0xFF1A1A1A) else Color(0xFFF5F7FF))
+            .border(1.dp, zurublue.copy(alpha = 0.25f), RoundedCornerShape(16.dp))
+            .padding(16.dp),
+        verticalAlignment = Alignment.Top
+    ) {
+        // Icon box
+        Box(
+            modifier = Modifier
+                .size(44.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(zurublue.copy(alpha = 0.12f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(reason.icon, contentDescription = null, tint = zurublue, modifier = Modifier.size(22.dp))
+        }
+
+        Spacer(Modifier.width(14.dp))
+
+        Column(modifier = Modifier.weight(1f)) {
+            Text(text = reason.title, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+            Spacer(Modifier.height(4.dp))
+            Text(text = reason.description, fontSize = 13.sp, lineHeight = 19.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
+        }
+    }
+}
+
+
+// ── TourWithZuru Screen ───────────────────────────────────────────────────────
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TourWithZuruScreen(navController: NavController) {
 
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
 
-    //Scaffold
-
-    var selectedIndex by remember { mutableStateOf(0) }
-    var menuExpanded by remember { mutableStateOf(false) }
-
-    Scaffold(
-
-
-        //TopBar
-        topBar = {
-            TopAppBar(
-                title = { Text("Tour with Zuru") },
-
-                navigationIcon = {
-                    Box {
-                        IconButton(onClick = { menuExpanded = true }) {
-                            Icon(Icons.Default.Menu, contentDescription = "Menu")
-                        }
-                        DropdownMenu(
-                            expanded = menuExpanded,
-                            onDismissRequest = { menuExpanded = false }
-                        ) {
-                            DropdownMenuItem(
-                                text = { Text("Profile") },
-                                leadingIcon = {
-                                    Icon(
-                                        Icons.Default.Person,
-                                        contentDescription = "Profile",
-                                        tint = zurublue
-                                    )
-                                },
-                                onClick = {
-                                    menuExpanded = false
-                                    selectedIndex = 0
-                                    navController.navigate(ROUT_PROFILE)
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = { Text("Home") },
-                                leadingIcon = {
-                                    Icon(
-                                        Icons.Default.Home,
-                                        contentDescription = "Home",
-                                        tint = zurublue
-                                    )
-                                },
-                                onClick = {
-                                    menuExpanded = false
-                                    selectedIndex = 1
-                                    navController.navigate(ROUT_HOME)
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = { Text("Hotels") },
-                                leadingIcon = {
-                                    Icon(
-                                        Icons.Default.Home,
-                                        contentDescription = "Hotels",
-                                        tint = zurublue
-                                    )
-                                },
-                                onClick = {
-                                    menuExpanded = false
-                                    selectedIndex = 2
-                                    navController.navigate(ROUT_HOTELS)
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = { Text("Destinations") },
-                                leadingIcon = {
-                                    Icon(
-                                        Icons.Default.LocationOn,
-                                        contentDescription = "Destinations",
-                                        tint = zurublue
-                                    )
-                                },
-                                onClick = {
-                                    menuExpanded = false
-                                    selectedIndex = 3
-                                    navController.navigate(ROUT_DESTINATIONS)
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = { Text("Maps") },
-                                leadingIcon = {
-                                    Icon(
-                                        Icons.Default.LocationOn,
-                                        contentDescription = "Maps",
-                                        tint = zurublue
-                                    )
-                                },
-                                onClick = {
-                                    menuExpanded = false
-                                    selectedIndex = 5
-                                    navController.navigate(ROUT_MAPS)
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = { Text("Reservations") },
-                                leadingIcon = {
-                                    Icon(
-                                        Icons.Default.Star,
-                                        contentDescription = "Reservations",
-                                        tint = zurublue
-                                    )
-                                },
-                                onClick = {
-                                    menuExpanded = false
-                                    selectedIndex = 6
-                                    navController.navigate(ROUT_RESERVATIONS)
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = { Text("Discover") },
-                                leadingIcon = {
-                                    Icon(
-                                        Icons.Default.Star,
-                                        contentDescription = "Discover",
-                                        tint = zurublue
-                                    )
-                                },
-                                onClick = {
-                                    menuExpanded = false
-                                    selectedIndex = 7
-                                    navController.navigate(ROUT_DISCOVER)
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = { Text("Tourers") },
-                                leadingIcon = {
-                                    Icon(
-                                        Icons.Default.Star,
-                                        contentDescription = "Tourers",
-                                        tint = zurublue
-                                    )
-                                },
-                                onClick = {
-                                    menuExpanded = false
-                                    selectedIndex = 8
-                                    navController.navigate(ROUT_TOURERS)
-                                }
-                            )
-                        }
-                    }
-                },
-
-
-                actions = {
-                    IconButton(
-                        onClick = {}) {
-                        Icon(
-                            imageVector = Icons.Default.Notifications,
-                            contentDescription = "Notifications"
-                        )
-                    }
-                    IconButton(
-                        onClick = {}) {
-                        Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = "Search"
-                        )
-                    }
-                    IconButton(
-                        onClick = {
-                            navController.navigate(ROUT_HOME)
-                        }) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowForward,
-                            contentDescription = "Share"
-                        )
-                    }
-
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = zurublue,
-                    titleContentColor = Color.White,
-                    navigationIconContentColor = Color.White,
-                    actionIconContentColor = Color.White,
-
-                    )
-            )
-        },
-
-
-        //FloatingActionButton
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { /* Add action */ },
-                containerColor = zurublue,
-                modifier = Modifier.padding(end = 5.dp, bottom = 5.dp)
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Add", tint = Color.White)
-            }
-        },
-
-
-        //Content
-        content = { paddingValues ->
-            Column(
-                modifier = Modifier
-                    .padding(paddingValues)
-                    .fillMaxSize()
-            ) {
-                //Main Contents of the page
-
-
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        drawerContent = {
+            ModalDrawerSheet {
+                Spacer(Modifier.height(24.dp))
+                Text("Zuru", fontSize = 26.sp, fontWeight = FontWeight.ExtraBold, color = zurublue, modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp))
+                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                NavigationDrawerItem(icon = { Icon(Icons.Default.Person, null, tint = zurublue) }, label = { Text("Profile", color = zurublue) }, selected = false, onClick = { scope.launch { drawerState.close() }; navController.navigate(ROUT_PROFILE) })
+                NavigationDrawerItem(icon = { Icon(Icons.Default.Home, null, tint = zurublue) }, label = { Text("Home", color = zurublue) }, selected = false, onClick = { scope.launch { drawerState.close() }; navController.navigate(ROUT_HOME) })
+                NavigationDrawerItem(icon = { Icon(Icons.Default.Home, null, tint = zurublue) }, label = { Text("Hotels", color = zurublue) }, selected = false, onClick = { scope.launch { drawerState.close() }; navController.navigate(ROUT_HOTELS) })
+                NavigationDrawerItem(icon = { Icon(Icons.Default.LocationOn, null, tint = zurublue) }, label = { Text("Maps", color = zurublue) }, selected = false, onClick = { scope.launch { drawerState.close() }; navController.navigate(ROUT_MAPS) })
+                NavigationDrawerItem(icon = { Icon(Icons.Default.Person, null, tint = zurublue) }, label = { Text("Tourers", color = zurublue) }, selected = false, onClick = { scope.launch { drawerState.close() }; navController.navigate(ROUT_TOURERS) })
+                NavigationDrawerItem(icon = { Icon(Icons.Default.Search, null, tint = zurublue) }, label = { Text("Discover", color = zurublue) }, selected = false, onClick = { scope.launch { drawerState.close() }; navController.navigate(ROUT_DISCOVER) })
+                NavigationDrawerItem(icon = { Icon(Icons.Default.Close, null, tint = Color.Red) }, label = { Text("Logout", color = Color.Red) }, selected = false, onClick = { scope.launch { drawerState.close() }; navController.navigate(ROUT_LOGIN) })
             }
         }
-    )
+    ) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text("Tour with Zuru", color = zurublue, fontSize = 26.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 10.dp)) },
+                    actions = {
+                        IconButton(onClick = { scope.launch { drawerState.open() } }) {
+                            Icon(Icons.Default.MoreVert, contentDescription = "Menu", tint = zurublue)
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors()
+                )
+            }
+        ) { paddingValues ->
+            LazyColumn(
+                modifier = Modifier.padding(paddingValues).fillMaxSize(),
+                contentPadding = PaddingValues(bottom = 32.dp)
+            ) {
 
-    //End of scaffold
+                // ── Hero section ──────────────────────────────────────────────
+                item {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(zurublue)
+                            .padding(horizontal = 24.dp, vertical = 32.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Icon(Icons.Default.Star, contentDescription = null, tint = Color.White, modifier = Modifier.size(48.dp))
+                        Spacer(Modifier.height(12.dp))
+                        Text(
+                            text = "Kenya, Your Way",
+                            fontSize = 26.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = Color.White,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            text = "Zuru is not just a travel app — it's your personal Kenyan adventure partner. We plan, you explore.",
+                            fontSize = 14.sp,
+                            color = Color.White.copy(alpha = 0.85f),
+                            textAlign = TextAlign.Center,
+                            lineHeight = 20.sp
+                        )
+                    }
+                }
 
+                // ── Why choose Zuru header ────────────────────────────────────
+                item {
+                    Spacer(Modifier.height(24.dp))
+                    Text(
+                        text = "Why Tour with Zuru?",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        modifier = Modifier.padding(horizontal = 20.dp)
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = "Here's what makes us different from everyone else",
+                        fontSize = 13.sp,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                        modifier = Modifier.padding(horizontal = 20.dp)
+                    )
+                    Spacer(Modifier.height(12.dp))
+                }
+
+                // ── Reason cards ──────────────────────────────────────────────
+                items(zuruReasons.size) { index ->
+                    ZuruReasonCard(reason = zuruReasons[index])
+                }
+
+                // ── Stats row ─────────────────────────────────────────────────
+                item {
+                    Spacer(Modifier.height(24.dp))
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        listOf(
+                            Triple("5,000+", "Happy\nTravellers", Icons.Default.Person),
+                            Triple("50+", "Destinations\nCovered", Icons.Default.LocationOn),
+                            Triple("4.9★", "Average\nRating", Icons.Default.Star)
+                        ).forEach { (stat, label, icon) ->
+                            Card(
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(16.dp),
+                                colors = CardDefaults.cardColors(containerColor = zurublue)
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(12.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
+                                    Spacer(Modifier.height(6.dp))
+                                    Text(text = stat, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold, color = Color.White)
+                                    Text(text = label, fontSize = 10.sp, color = Color.White.copy(alpha = 0.8f), textAlign = TextAlign.Center, lineHeight = 14.sp)
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // ── Tour with Zuru button ─────────────────────────────────────
+                item {
+                    Spacer(Modifier.height(28.dp))
+                    Button(
+                        onClick = { navController.navigate(ROUT_DISCOVER) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp)
+                            .height(56.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = zurublue)
+                    ) {
+                        Icon(Icons.Default.Star, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
+                        Spacer(Modifier.width(10.dp))
+                        Text("Tour with Zuru", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                    }
+                    Spacer(Modifier.height(8.dp))
+                }
+            }
+        }
+    }
 }
 
 
 @Preview(showBackground = true)
 @Composable
-fun TourWithZuruScreenPreview(){
-    TourWithZuruScreen(rememberNavController()) }
-
-
-
-
+fun TourWithZuruScreenPreview() {
+    TourWithZuruScreen(rememberNavController())
+}

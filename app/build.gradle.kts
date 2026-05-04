@@ -3,6 +3,7 @@ import org.gradle.kotlin.dsl.invoke
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.google.gms.google.services)
 }
 
 android {
@@ -56,6 +57,7 @@ dependencies {
 
     //Splash Screen API
     implementation("androidx.compose.animation:animation:1.10.6")
+
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

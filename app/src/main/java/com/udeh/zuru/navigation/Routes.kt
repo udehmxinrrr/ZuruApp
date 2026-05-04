@@ -10,8 +10,10 @@ const val ROUT_MAPS = "maps"
 const val ROUT_PROFILE = "profile"
 const val ROUT_TOURWITHZURU = "tourwithzuru"
 const val ROUT_DISCOVER = "discover"
-const val ROUT_RESERVATIONS = "reservations"
+const val ROUT_PAYMENT = "payment"
+const val ROUT_TOURSPAYMENT = "tourspayment"
 const val ROUT_TOURERS = "tourers"
+const val ROUT_DESTINATION_FACTS = "destination_facts"
 
 
 
