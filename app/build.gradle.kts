@@ -1,5 +1,3 @@
-import org.gradle.kotlin.dsl.invoke
-
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -8,11 +6,7 @@ plugins {
 
 android {
     namespace = "com.udeh.zuru"
-    compileSdk {
-        version = release(36) {
-            minorApiLevel = 1
-        }
-    }
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.udeh.zuru"
@@ -20,7 +14,6 @@ android {
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -52,12 +45,16 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
 
-    //
+    // Icons
     implementation("androidx.compose.material:material-icons-core:1.7.8")
 
-    //Splash Screen API
-    implementation("androidx.compose.animation:animation:1.10.6")
+    // Navigation
+    implementation("androidx.navigation:navigation-runtime-ktx:2.9.7")
+    implementation("androidx.navigation:navigation-compose:2.9.7")
 
+    //Firebase
+    implementation(libs.firebase.database)
+    implementation(libs.firebase.auth)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -66,11 +63,4 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
-
-    //Navigation
-    implementation("androidx.navigation:navigation-runtime-ktx:2.9.7")
-    implementation("androidx.navigation:navigation-compose:2.9.7")
-
-
-
 }
