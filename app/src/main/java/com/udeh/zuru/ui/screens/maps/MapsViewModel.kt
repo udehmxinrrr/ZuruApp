@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.async
 import kotlinx.coroutines.tasks.await
 
 class MapsViewModel : ViewModel() {
@@ -50,42 +51,19 @@ class MapsViewModel : ViewModel() {
 
     @SuppressLint("MissingPermission")
     fun fetchCurrentLocation() {
-        fusedLocationClient?.lastLocation?.addOnSuccessListener { location: Location? ->
-            location?.let {
-                val latLng = LatLng(it.latitude, it.longitude)
-                _currentLocation.value = latLng
-                fetchNearbyPlaces(latLng, listOf(Place.Type.TOURIST_ATTRACTION, Place.Type.MUSEUM, Place.Type.PARK))
-            }
-        }
-    }
-
-    private fun fetchNearbyPlaces(location: LatLng, types: List<Place.Type>) {
         viewModelScope.launch {
-            _isLoading.value = true
             try {
-                val placeFields = listOf(
-                    Place.Field.ID,
-                    Place.Field.NAME,
-                    Place.Field.LAT_LNG,
-                    Place.Field.RATING,
-                    Place.Field.TYPES,
-                    Place.Field.PHOTO_METADATAS,
-                    Place.Field.BUSINESS_STATUS,
-                    Place.Field.ADDRESS                )
-
-                val circle = CircularBounds.newInstance(location, 5000.0) // 5km radius
-
-                val request = SearchNearbyRequest.builder(circle, placeFields)
-                    .setIncludedTypes(types.map { it.name })
-                    .setMaxResultCount(10)
-                    .build()
-
-                val response = placesClient?.searchNearby(request)?.await()
-                
-                if (types.contains(Place.Type.TOURIST_ATTRACTION)) {
-                    _touristSites.value = response?.places ?: emptyList()
-                } else if (types.contains(Place.Type.LODGING)) {
-                    _hotels.value = response?.places ?: emptyList()
+                _isLoading.value = true
+                val location = fusedLocationClient?.lastLocation?.await()
+                location?.let {
+                    val latLng = LatLng(it.latitude, it.longitude)
+                    _currentLocation.value = latLng
+                    // Fetch tourist attractions and hotels concurrently
+                    val touristDeferred = async { fetchPlaces(latLng, listOf(Place.Type.TOURIST_ATTRACTION, Place.Type.MUSEUM, Place.Type.PARK)) }
+                    val hotelsDeferred = async { fetchPlaces(latLng, listOf(Place.Type.LODGING)) }
+                    
+                    _touristSites.value = touristDeferred.await()
+                    _hotels.value = hotelsDeferred.await()
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -95,10 +73,42 @@ class MapsViewModel : ViewModel() {
         }
     }
 
+    private suspend fun fetchPlaces(location: LatLng, types: List<Place.Type>): List<Place> {
+        return try {
+            val placeFields = listOf(
+                Place.Field.ID,
+                Place.Field.NAME,
+                Place.Field.LAT_LNG,
+                Place.Field.RATING,
+                Place.Field.TYPES,
+                Place.Field.PHOTO_METADATAS,
+                Place.Field.BUSINESS_STATUS,
+                Place.Field.ADDRESS
+            )
+
+            val circle = CircularBounds.newInstance(location, 5000.0)
+
+            val request = SearchNearbyRequest.builder(circle, placeFields)
+                .setIncludedTypes(types.map { it.name })
+                .setMaxResultCount(10)
+                .build()
+
+            placesClient?.searchNearby(request)?.await()?.places ?: emptyList()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emptyList()
+        }
+    }
+
     fun selectPlace(place: Place?) {
         _selectedPlace.value = place
     }
 
     fun findHotelsNear(location: LatLng) {
-        fetchNearbyPlaces(location, listOf(Place.Type.LODGING))    }
+        viewModelScope.launch {
+            _isLoading.value = true
+            _hotels.value = fetchPlaces(location, listOf(Place.Type.LODGING))
+            _isLoading.value = false
+        }
+    }
 }
